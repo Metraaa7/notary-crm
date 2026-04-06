@@ -1,0 +1,70 @@
+# ─── AI / Claude ──────────────────────────────────────────────────────────────
+.claude/
+CLAUDE.md
+AGENTS.md
+.cursorrules
+.cursor/
+.aider*
+.copilot/
+
+# ─── README / docs ────────────────────────────────────────────────────────────
+README.md
+README*.md
+readme.md
+CHANGELOG.md
+CONTRIBUTING.md
+SECURITY.md
+PLAN.md
+TODO.md
+ROADMAP.md
+
+# ─── Environment / secrets ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+
+# ─── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# ─── Editors ──────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.orig
+
+# ─── Node / npm ───────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm
+
+# ─── Backend build ────────────────────────────────────────────────────────────
+dist/
+*.tsbuildinfo
+
+# ─── Frontend build ───────────────────────────────────────────────────────────
+frontend/.next/
+frontend/out/
+frontend/dist/
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ─── Testing / coverage ───────────────────────────────────────────────────────
+coverage/
+.nyc_output/
