@@ -20,9 +20,15 @@ export interface ServiceUser {
   role: string;
 }
 
+export interface PopulatedClient {
+  _id: string;
+  firstName: string;
+  lastName: string;
+}
+
 export interface Service {
   _id: string;
-  client: string;
+  client: string | PopulatedClient;
   type: ServiceType;
   status: ServiceStatus;
   description: string;

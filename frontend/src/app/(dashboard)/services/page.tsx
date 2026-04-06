@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { clientsService } from '@/services/clients.service';
 import { servicesService } from '@/services/services.service';
 import { extractErrorMessage } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
@@ -25,8 +24,10 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-import type { Client } from '@/types/client.types';
-import type { Service, ServiceStatus } from '@/types/service.types';
+import { Pagination } from '@/components/ui/Pagination';
+
+const PER_PAGE = 5;
+import type { Service, ServiceStatus, PopulatedClient } from '@/types/service.types';
 
 const SERVICE_TYPE_LABELS: Record<string, string> = {
   DEED: 'Нотаріальний акт',
@@ -46,20 +47,28 @@ const STATUS_FILTERS: { label: string; value: ServiceStatus | 'ALL' }[] = [
   { label: 'Скасовані', value: 'CANCELLED' },
 ];
 
-interface ServiceWithClient extends Service {
-  clientName: string;
-  clientId: string;
+function clientName(client: Service['client']): string {
+  if (typeof client === 'object' && client !== null) {
+    return `${(client as PopulatedClient).lastName} ${(client as PopulatedClient).firstName}`;
+  }
+  return '—';
+}
+
+function clientId(client: Service['client']): string {
+  if (typeof client === 'object' && client !== null) return (client as PopulatedClient)._id;
+  return client as string;
 }
 
 export default function ServicesPage() {
   const { isNotary } = useAuth();
   const router = useRouter();
 
-  const [services, setServices] = useState<ServiceWithClient[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<ServiceStatus | 'ALL'>('ALL');
-  const [confirmTarget, setConfirmTarget] = useState<ServiceWithClient | null>(null);
-  const [cancelTarget, setCancelTarget] = useState<ServiceWithClient | null>(null);
+  const [page, setPage] = useState(1);
+  const [confirmTarget, setConfirmTarget] = useState<Service | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<Service | null>(null);
   const [isActing, setIsActing] = useState(false);
   const [expandedClients, setExpandedClients] = useState<Record<string, boolean>>({});
 
@@ -67,29 +76,7 @@ export default function ServicesPage() {
     async function load() {
       setIsLoading(true);
       try {
-        const clients: Client[] = await clientsService.getAll();
-
-        const results = await Promise.allSettled(
-          clients.map((c) => servicesService.getAllByClient(c._id)),
-        );
-
-        const all: ServiceWithClient[] = [];
-        results.forEach((result, idx) => {
-          if (result.status === 'fulfilled') {
-            result.value.forEach((svc) => {
-              all.push({
-                ...svc,
-                clientName: `${clients[idx].lastName} ${clients[idx].firstName}`,
-                clientId: clients[idx]._id,
-              });
-            });
-          }
-        });
-
-        all.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-        );
+        const all = await servicesService.getAll();
         setServices(all);
       } catch {
         toast.error('Помилка завантаження послуг');
@@ -105,15 +92,15 @@ export default function ServicesPage() {
       ? services
       : services.filter((s) => s.status === statusFilter);
 
+  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
   const handleConfirm = async () => {
     if (!confirmTarget) return;
     setIsActing(true);
     try {
       const updated = await servicesService.confirm(confirmTarget._id, {});
       setServices((prev) =>
-        prev.map((s) =>
-          s._id === confirmTarget._id ? { ...s, ...updated } : s,
-        ),
+        prev.map((s) => s._id === confirmTarget._id ? { ...s, ...updated, client: s.client } : s),
       );
       toast.success('Послугу підтверджено');
       setConfirmTarget(null);
@@ -130,9 +117,7 @@ export default function ServicesPage() {
     try {
       const updated = await servicesService.cancel(cancelTarget._id);
       setServices((prev) =>
-        prev.map((s) =>
-          s._id === cancelTarget._id ? { ...s, ...updated } : s,
-        ),
+        prev.map((s) => s._id === cancelTarget._id ? { ...s, ...updated, client: s.client } : s),
       );
       toast.success('Послугу скасовано');
       setCancelTarget(null);
@@ -168,7 +153,7 @@ export default function ServicesPage() {
           return (
             <button
               key={value}
-              onClick={() => setStatusFilter(value)}
+              onClick={() => { setStatusFilter(value); setPage(1); }}
               className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                 statusFilter === value
                   ? 'bg-blue-600 text-white shadow-sm'
@@ -211,7 +196,7 @@ export default function ServicesPage() {
       ) : (
         <div className="space-y-3">
           <AnimatePresence initial={false}>
-            {filtered.map((svc, i) => {
+            {paginated.map((svc, i) => {
               const isExpanded = expandedClients[svc._id];
               return (
                 <motion.div
@@ -238,10 +223,10 @@ export default function ServicesPage() {
                           </div>
                           <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-gray-400">
                             <Link
-                              href={`/clients/${svc.clientId}`}
+                              href={`/clients/${clientId(svc.client)}`}
                               className="hover:text-blue-500 transition-colors"
                             >
-                              {svc.clientName}
+                              {clientName(svc.client)}
                             </Link>
                             <span>·</span>
                             <span>{SERVICE_TYPE_LABELS[svc.type] ?? svc.type}</span>
@@ -325,12 +310,19 @@ export default function ServicesPage() {
         </div>
       )}
 
+      <Pagination
+        total={filtered.length}
+        page={page}
+        perPage={PER_PAGE}
+        onChange={setPage}
+      />
+
       <ConfirmDialog
         open={!!confirmTarget}
         title="Підтвердити послугу"
         description={
           confirmTarget
-            ? `Підтвердити послугу «${confirmTarget.description}» для клієнта ${confirmTarget.clientName}?`
+            ? `Підтвердити послугу «${confirmTarget.description}» для клієнта ${clientName(confirmTarget.client)}?`
             : ''
         }
         confirmLabel="Підтвердити"

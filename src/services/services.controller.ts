@@ -40,6 +40,13 @@ export class ServicesController {
     );
   }
 
+  // GET /services
+  @Get('services')
+  @Roles(Role.NOTARY, Role.ASSISTANT)
+  findAll(): Promise<ServiceDocument[]> {
+    return this.servicesService.findAll();
+  }
+
   // GET /clients/:clientId/services
   @Get('clients/:clientId/services')
   @Roles(Role.NOTARY, Role.ASSISTANT)

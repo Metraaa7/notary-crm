@@ -39,6 +39,12 @@ export class DocumentsController {
     return this.documentsService.generate(dto, user.userId, user.email);
   }
 
+  @Get()
+  @Roles(Role.NOTARY, Role.ASSISTANT)
+  findAll(): Promise<DocumentDocument[]> {
+    return this.documentsService.findAll();
+  }
+
   @Get('client/:clientId')
   @Roles(Role.NOTARY, Role.ASSISTANT)
   findAllByClient(
@@ -70,8 +76,15 @@ export class DocumentsController {
     @CurrentUser() user: RequestUser,
     @Res() res: Response,
   ): Promise<void> {
-    const notaryUser = await this.usersService.findById(user.userId);
-    const pdfBuffer = await this.documentsService.exportPdf(id, notaryUser.name);
+    let notaryName = user.email;
+    try {
+      const notaryUser = await this.usersService.findById(user.userId);
+      notaryName = notaryUser.name;
+    } catch {
+      // user not found in DB (e.g. stale JWT after reseed) — fall back to email
+    }
+
+    const pdfBuffer = await this.documentsService.exportPdf(id, notaryName);
     const document = await this.documentsService.findById(id);
 
     res.set({

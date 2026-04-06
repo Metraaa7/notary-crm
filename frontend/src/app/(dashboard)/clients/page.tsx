@@ -38,6 +38,9 @@ import {
 } from 'lucide-react';
 import type { Client } from '@/types/client.types';
 import { useRouter } from 'next/navigation';
+import { Pagination } from '@/components/ui/Pagination';
+
+const PER_PAGE = 10;
 
 export default function ClientsPage() {
   const { isNotary } = useAuth();
@@ -45,6 +48,7 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [deactivating, setDeactivating] = useState<Client | null>(null);
   const [isDeactivating, setIsDeactivating] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -68,9 +72,12 @@ export default function ClientsPage() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearch(value);
+    setPage(1);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => load(value), 400);
   };
+
+  const paginated = clients.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const handleDeactivate = async () => {
     if (!deactivating) return;
@@ -160,7 +167,7 @@ export default function ClientsPage() {
               </TableRow>
             ) : (
               <AnimatePresence initial={false}>
-                {clients.map((client, i) => (
+                {paginated.map((client, i) => (
                   <motion.tr
                     key={client._id}
                     initial={{ opacity: 0, y: 6 }}
@@ -228,6 +235,13 @@ export default function ClientsPage() {
           </TableBody>
         </Table>
       </div>
+
+      <Pagination
+        total={clients.length}
+        page={page}
+        perPage={PER_PAGE}
+        onChange={setPage}
+      />
 
       <ConfirmDialog
         open={!!deactivating}

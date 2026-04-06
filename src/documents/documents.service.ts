@@ -63,6 +63,16 @@ export class DocumentsService {
     return document.save();
   }
 
+  async findAll(): Promise<DocumentDocument[]> {
+    return this.documentModel
+      .find({})
+      .populate('client', 'firstName lastName')
+      .populate('generatedBy', 'name email')
+      .populate('finalizedBy', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
   async findAllByClient(clientId: string): Promise<DocumentDocument[]> {
     await this.clientsService.findById(clientId);
 

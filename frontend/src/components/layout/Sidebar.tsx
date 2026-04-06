@@ -11,6 +11,7 @@ import {
   ScrollText,
   Scale,
   X,
+  UserCog,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
   { href: '/clients', label: 'Клієнти', icon: Users },
   { href: '/documents', label: 'Документи', icon: ScrollText },
   { href: '/services', label: 'Послуги', icon: FileText },
+  { href: '/employees', label: 'Співробітники', icon: UserCog },
 ];
 
 interface SidebarProps {

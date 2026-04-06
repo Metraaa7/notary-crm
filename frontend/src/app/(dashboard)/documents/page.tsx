@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { clientsService } from '@/services/clients.service';
 import { documentsService } from '@/services/documents.service';
 import { useAuth } from '@/context/AuthContext';
 import { formatDateTime } from '@/lib/utils';
@@ -21,44 +20,37 @@ import {
   Clock,
   Download,
 } from 'lucide-react';
-import type { NotaryDocument } from '@/types/document.types';
-import type { Client } from '@/types/client.types';
+import { Pagination } from '@/components/ui/Pagination';
+
+const PER_PAGE = 10;
+import type { NotaryDocument, PopulatedClient } from '@/types/document.types';
 
 const STATUS_CONFIG = {
   DRAFT: { label: 'Чернетка', className: 'bg-amber-100 text-amber-700', icon: Clock },
   FINAL: { label: 'Завершено', className: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
 } as const;
 
+function resolveClient(client: NotaryDocument['client']): { id: string; name: string } {
+  if (typeof client === 'object' && client !== null) {
+    const c = client as PopulatedClient;
+    return { id: c._id, name: `${c.lastName} ${c.firstName}` };
+  }
+  return { id: client as string, name: '—' };
+}
+
 export default function DocumentsPage() {
   const { isNotary } = useAuth();
-  const [clients, setClients] = useState<Client[]>([]);
   const [documents, setDocuments] = useState<NotaryDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const [downloading, setDownloading] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       setIsLoading(true);
       try {
-        const allClients = await clientsService.getAll();
-        setClients(allClients);
-
-        const docsPerClient = await Promise.allSettled(
-          allClients.map((c) => documentsService.getAllByClient(c._id)),
-        );
-
-        const allDocs: NotaryDocument[] = [];
-        docsPerClient.forEach((result) => {
-          if (result.status === 'fulfilled') {
-            allDocs.push(...result.value);
-          }
-        });
-
-        allDocs.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-        );
-        setDocuments(allDocs);
+        const all = await documentsService.getAll();
+        setDocuments(all);
       } catch {
         toast.error('Помилка завантаження документів');
       } finally {
@@ -68,10 +60,7 @@ export default function DocumentsPage() {
     load();
   }, []);
 
-  const getClientName = (clientId: string) => {
-    const client = clients.find((c) => c._id === clientId);
-    return client ? `${client.lastName} ${client.firstName}` : '—';
-  };
+  const paginated = documents.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const handleExport = async (doc: NotaryDocument) => {
     setDownloading(doc._id);
@@ -123,13 +112,10 @@ export default function DocumentsPage() {
       ) : (
         <div className="space-y-3">
           <AnimatePresence initial={false}>
-            {documents.map((doc, i) => {
+            {paginated.map((doc, i) => {
               const cfg = STATUS_CONFIG[doc.status];
               const StatusIcon = cfg.icon;
-              const clientId =
-                typeof doc.client === 'string'
-                  ? doc.client
-                  : (doc.client as { _id: string })._id;
+              const { id: cId, name: cName } = resolveClient(doc.client);
 
               return (
                 <motion.div
@@ -165,10 +151,10 @@ export default function DocumentsPage() {
                           <span className="font-mono">{doc.documentNumber}</span>
                           <span>·</span>
                           <Link
-                            href={`/clients/${clientId}`}
+                            href={`/clients/${cId}`}
                             className="hover:text-blue-500 transition-colors"
                           >
-                            {getClientName(clientId)}
+                            {cName}
                           </Link>
                           <span>·</span>
                           <span>{formatDateTime(doc.createdAt)}</span>
@@ -177,11 +163,9 @@ export default function DocumentsPage() {
 
                       {/* Actions */}
                       <div className="flex shrink-0 items-center gap-2">
-                        {doc.verificationStatus && (
-                          <Badge variant="outline" className="hidden sm:inline-flex text-xs">
-                            {doc.verificationStatus === 'VERIFIED'
-                              ? '✓ Верифіковано'
-                              : doc.verificationStatus}
+                        {doc.verificationStatus === 'VERIFIED' && (
+                          <Badge variant="outline" className="hidden sm:inline-flex text-xs text-emerald-600 border-emerald-200">
+                            ✓ Верифіковано
                           </Badge>
                         )}
                         <Button
@@ -202,6 +186,13 @@ export default function DocumentsPage() {
           </AnimatePresence>
         </div>
       )}
+
+      <Pagination
+        total={documents.length}
+        page={page}
+        perPage={PER_PAGE}
+        onChange={setPage}
+      />
     </div>
   );
 }

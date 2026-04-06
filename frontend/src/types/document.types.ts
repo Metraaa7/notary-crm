@@ -6,11 +6,17 @@ export type VerificationStatus =
   | 'MISMATCH'
   | 'UNAVAILABLE';
 
+export interface PopulatedClient {
+  _id: string;
+  firstName: string;
+  lastName: string;
+}
+
 export interface NotaryDocument {
   _id: string;
   documentNumber: string;
   title: string;
-  client: string;
+  client: string | PopulatedClient;
   services: string[];
   content: string;
   status: DocumentStatus;

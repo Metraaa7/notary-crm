@@ -8,6 +8,11 @@ import {
 import { ApiResponse } from '@/types/api.types';
 
 export const servicesService = {
+  async getAll(): Promise<Service[]> {
+    const response = await api.get<unknown, ApiResponse<Service[]>>('/services');
+    return response.data;
+  },
+
   async getAllByClient(clientId: string): Promise<Service[]> {
     const response = await api.get<unknown, ApiResponse<Service[]>>(
       `/clients/${clientId}/services`,

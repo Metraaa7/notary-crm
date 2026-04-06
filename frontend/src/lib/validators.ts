@@ -34,6 +34,22 @@ export const generateDocumentSchema = z.object({
   notes: z.string().optional(),
 });
 
+export const createEmployeeSchema = z.object({
+  name: z.string().min(1, "Ім'я обов'язкове"),
+  email: z.string().email('Невірний формат email'),
+  password: z.string().min(8, 'Пароль має містити щонайменше 8 символів'),
+  role: z.enum(['NOTARY', 'ASSISTANT']),
+});
+
+export const updateEmployeeSchema = z.object({
+  name: z.string().min(1, "Ім'я обов'язкове").optional(),
+  email: z.string().email('Невірний формат email').optional(),
+  role: z.enum(['NOTARY', 'ASSISTANT']).optional(),
+});
+
+export type CreateEmployeeFormValues = z.infer<typeof createEmployeeSchema>;
+export type UpdateEmployeeFormValues = z.infer<typeof updateEmployeeSchema>;
+
 export type ClientFormValues = z.infer<typeof clientSchema>;
 export type UpdateClientFormValues = z.infer<typeof updateClientSchema>;
 export type ServiceFormValues = z.infer<typeof serviceSchema>;

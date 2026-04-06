@@ -40,6 +40,16 @@ export class ServicesService {
     return service.save();
   }
 
+  async findAll(): Promise<ServiceDocument[]> {
+    return this.serviceModel
+      .find({})
+      .populate('client', 'firstName lastName')
+      .populate('createdBy', 'name email role')
+      .populate('confirmedBy', 'name email role')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
   async findAllByClient(clientId: string): Promise<ServiceDocument[]> {
     // Verify client exists
     await this.clientsService.findById(clientId);
