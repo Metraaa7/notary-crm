@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { Pagination } from '@/components/ui/Pagination';
 
-const PER_PAGE = 5;
+const PER_PAGE = 6;
 import type { Service, ServiceStatus, PopulatedClient } from '@/types/service.types';
 
 const SERVICE_TYPE_LABELS: Record<string, string> = {

@@ -30,7 +30,7 @@ import { UserPlus, MoreHorizontal, Eye, Pencil, UserX, AlertCircle } from 'lucid
 import type { Employee } from '@/types/user.types';
 import { Pagination } from '@/components/ui/Pagination';
 
-const PER_PAGE = 10;
+const PER_PAGE = 5;
 
 export default function EmployeesPage() {
   const { isNotary } = useAuth();

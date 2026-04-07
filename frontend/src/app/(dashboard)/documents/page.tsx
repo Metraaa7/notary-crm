@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { Pagination } from '@/components/ui/Pagination';
 
-const PER_PAGE = 10;
+const PER_PAGE = 6;
 import type { NotaryDocument, PopulatedClient } from '@/types/document.types';
 
 const STATUS_CONFIG = {
