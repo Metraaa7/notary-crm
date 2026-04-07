@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { servicesService } from '@/services/services.service';
 import { extractErrorMessage } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
-import { formatDate, formatDateTime, formatFee } from '@/lib/utils';
+import { useSettings } from '@/context/SettingsContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ServiceStatusBadge } from '@/components/services/ServiceStatusBadge';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -68,6 +68,7 @@ export default function ServiceDetailPage({
 }) {
   const { id } = use(params);
   const { isNotary } = useAuth();
+  const { formatMoney, formatDateTime } = useSettings();
   const router = useRouter();
 
   const [service, setService] = useState<Service | null>(null);
@@ -179,7 +180,7 @@ export default function ServiceDetailPage({
             <InfoRow
               icon={Banknote}
               label="Вартість"
-              value={formatFee(service.feeAmount, service.feeCurrency)}
+              value={formatMoney(service.feeAmount, service.feeCurrency)}
             />
 
             <Separator />

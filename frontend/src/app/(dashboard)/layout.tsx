@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
+import { useSettings } from '@/context/SettingsContext';
 
 export default function DashboardLayout({
   children,
@@ -11,6 +12,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { compactTables } = useSettings();
+
+  useEffect(() => {
+    document.body.classList.toggle('compact-tables', compactTables);
+  }, [compactTables]);
 
   return (
     <AuthGuard>

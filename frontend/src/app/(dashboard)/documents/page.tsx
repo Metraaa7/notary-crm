@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { documentsService } from '@/services/documents.service';
 import { useAuth } from '@/context/AuthContext';
-import { formatDateTime } from '@/lib/utils';
+import { useSettings } from '@/context/SettingsContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +40,7 @@ function resolveClient(client: NotaryDocument['client']): { id: string; name: st
 
 export default function DocumentsPage() {
   const { isNotary } = useAuth();
+  const { formatDateTime } = useSettings();
   const [documents, setDocuments] = useState<NotaryDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);

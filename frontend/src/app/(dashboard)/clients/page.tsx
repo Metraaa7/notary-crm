@@ -8,7 +8,7 @@ import { clientsService } from '@/services/clients.service';
 import { servicesService } from '@/services/services.service';
 import { documentsService } from '@/services/documents.service';
 import { useAuth } from '@/context/AuthContext';
-import { formatDate } from '@/lib/utils';
+import { useSettings } from '@/context/SettingsContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ClientStatusBadge } from '@/components/clients/ClientStatusBadge';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -60,6 +60,7 @@ const EMPTY_FILTERS: Filters = { search: '', nationalId: '', city: '' };
 
 export default function ClientsPage() {
   const { isNotary } = useAuth();
+  const { formatDate } = useSettings();
   const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
   const [serviceCounts, setServiceCounts] = useState<Record<string, number>>({});

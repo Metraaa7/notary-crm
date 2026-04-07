@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { servicesService } from '@/services/services.service';
 import { extractErrorMessage } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
-import { formatDate, formatFee } from '@/lib/utils';
+import { useSettings } from '@/context/SettingsContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ServiceStatusBadge } from '@/components/services/ServiceStatusBadge';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -61,6 +61,7 @@ function clientId(client: Service['client']): string {
 
 export default function ServicesPage() {
   const { isNotary } = useAuth();
+  const { formatMoney, formatDate } = useSettings();
   const router = useRouter();
 
   const [services, setServices] = useState<Service[]>([]);
@@ -231,7 +232,7 @@ export default function ServicesPage() {
                             <span>·</span>
                             <span>{SERVICE_TYPE_LABELS[svc.type] ?? svc.type}</span>
                             <span>·</span>
-                            <span>{formatFee(svc.feeAmount, svc.feeCurrency)}</span>
+                            <span>{formatMoney(svc.feeAmount, svc.feeCurrency)}</span>
                             <span>·</span>
                             <span>{formatDate(svc.createdAt)}</span>
                           </div>

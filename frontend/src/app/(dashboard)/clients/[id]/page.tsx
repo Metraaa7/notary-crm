@@ -9,7 +9,7 @@ import { clientsService } from '@/services/clients.service';
 import { servicesService } from '@/services/services.service';
 import { documentsService } from '@/services/documents.service';
 import { useAuth } from '@/context/AuthContext';
-import { formatDate, formatDateTime, formatFee } from '@/lib/utils';
+import { useSettings } from '@/context/SettingsContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ClientStatusBadge } from '@/components/clients/ClientStatusBadge';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -63,6 +63,7 @@ export default function ClientDetailPage({
 }) {
   const { id } = use(params);
   const { isNotary } = useAuth();
+  const { formatMoney, formatDate, formatDateTime } = useSettings();
   const router = useRouter();
 
   const [client, setClient] = useState<Client | null>(null);
@@ -257,7 +258,7 @@ export default function ClientDetailPage({
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                           <span className="text-sm text-gray-600 hidden sm:block">
-                            {formatFee(svc.feeAmount, svc.feeCurrency)}
+                            {formatMoney(svc.feeAmount, svc.feeCurrency)}
                           </span>
                           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cfg.color}`}>
                             {cfg.label}

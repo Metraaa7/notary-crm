@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { documentsService } from '@/services/documents.service';
 import { extractErrorMessage } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
-import { formatDateTime } from '@/lib/utils';
+import { useSettings } from '@/context/SettingsContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/button';
@@ -69,6 +69,7 @@ export default function DocumentDetailPage({
 }) {
   const { id } = use(params);
   const { isNotary } = useAuth();
+  const { formatDateTime } = useSettings();
   const [doc, setDoc] = useState<NotaryDocument | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showFinalize, setShowFinalize] = useState(false);

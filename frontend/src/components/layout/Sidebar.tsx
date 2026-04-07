@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -12,7 +13,11 @@ import {
   Scale,
   X,
   UserCog,
+  BarChart2,
+  MapPin,
+  Settings,
 } from 'lucide-react';
+import { SettingsPanel } from '@/components/settings/SettingsPanel';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Панель керування', icon: LayoutDashboard },
@@ -20,6 +25,8 @@ const NAV_ITEMS = [
   { href: '/documents', label: 'Документи', icon: ScrollText },
   { href: '/services', label: 'Послуги', icon: FileText },
   { href: '/employees', label: 'Співробітники', icon: UserCog },
+  { href: '/statistics', label: 'Статистика', icon: BarChart2 },
+  { href: '/map', label: 'Карта клієнтів', icon: MapPin },
 ];
 
 interface SidebarProps {
@@ -29,6 +36,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const content = (
     <div className="flex h-full flex-col bg-gray-900 text-white">
@@ -50,7 +58,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive =
             href === '/dashboard'
@@ -75,6 +83,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           );
         })}
       </nav>
+
+      {/* Settings button */}
+      <div className="px-3 pb-3">
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+        >
+          <Settings className="h-5 w-5 shrink-0" />
+          Налаштування
+        </button>
+      </div>
 
       {/* Bottom label */}
       <div className="border-t border-gray-700 px-5 py-4">
@@ -111,6 +130,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </motion.aside>
         </div>
       )}
+
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </>
   );
 }
