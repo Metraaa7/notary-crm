@@ -11,7 +11,13 @@ import { UpdateClientDto } from './dto/update-client.dto';
 
 export interface ClientFilter {
   search?: string;
+  nationalId?: string;
+  city?: string;
   includeInactive?: boolean;
+}
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 @Injectable()
@@ -45,8 +51,32 @@ export class ClientsService {
       query.isActive = true;
     }
 
-    if (filter.search) {
-      query.$text = { $search: filter.search };
+    // Build $and conditions for each active filter
+    const conditions: Record<string, unknown>[] = [];
+
+    if (filter.search?.trim()) {
+      // Split into words so "Петро Гончаренко" matches across firstName + lastName
+      const words = filter.search.trim().split(/\s+/);
+      for (const word of words) {
+        const r = { $regex: escapeRegex(word), $options: 'i' };
+        conditions.push({ $or: [{ firstName: r }, { lastName: r }] });
+      }
+    }
+
+    if (filter.nationalId?.trim()) {
+      conditions.push({
+        nationalId: { $regex: escapeRegex(filter.nationalId.trim()), $options: 'i' },
+      });
+    }
+
+    if (filter.city?.trim()) {
+      conditions.push({
+        'address.city': { $regex: escapeRegex(filter.city.trim()), $options: 'i' },
+      });
+    }
+
+    if (conditions.length > 0) {
+      query.$and = conditions;
     }
 
     return this.clientModel
@@ -77,7 +107,7 @@ export class ClientsService {
       .findOneAndUpdate(
         { _id: id, isActive: true },
         dto,
-        { new: true, runValidators: true },
+        { returnDocument: 'after', runValidators: true },
       )
       .populate('createdBy', 'name email role')
       .exec();

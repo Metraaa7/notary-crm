@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { NotaryDocument, DocumentDocument } from './schemas/document.schema';
 import { ClientsService } from '../clients/clients.service';
 import { ServicesService } from '../services/services.service';
@@ -54,10 +54,10 @@ export class DocumentsService {
     const document = new this.documentModel({
       documentNumber: documentData.documentNumber,
       title: dto.title,
-      client: dto.clientId,
-      services: dto.serviceIds,
+      client: new Types.ObjectId(dto.clientId),
+      services: dto.serviceIds.map((id) => new Types.ObjectId(id)),
       content,
-      generatedBy,
+      generatedBy: new Types.ObjectId(generatedBy),
     });
 
     return document.save();
@@ -77,7 +77,7 @@ export class DocumentsService {
     await this.clientsService.findById(clientId);
 
     return this.documentModel
-      .find({ client: clientId })
+      .find({ client: new Types.ObjectId(clientId) })
       .populate('generatedBy', 'name email')
       .populate('finalizedBy', 'name email')
       .sort({ createdAt: -1 })
@@ -111,17 +111,19 @@ export class DocumentsService {
     }
 
     document.status = DocumentStatus.FINAL;
-    document.finalizedBy = finalizedBy as unknown as typeof document.finalizedBy;
+    document.finalizedBy = new Types.ObjectId(finalizedBy) as unknown as typeof document.finalizedBy;
     document.finalizedAt = new Date();
 
     return document.save();
   }
 
-  async exportPdf(id: string, notaryName: string): Promise<Buffer> {
+  async exportPdf(id: string): Promise<Buffer> {
     const document = await this.findById(id);
 
     const client = document.client as unknown as ClientDocument;
     const services = document.services as unknown as ServiceDocument[];
+    const generatedByUser = document.generatedBy as unknown as { name?: string; email?: string };
+    const notaryName = generatedByUser?.name || generatedByUser?.email || 'Нотаріус';
 
     const documentData: DocumentData = {
       documentNumber: document.documentNumber,
@@ -153,9 +155,14 @@ export class DocumentsService {
     services: ServiceDocument[],
     clientId: string,
   ): void {
-    const mismatched = services.filter(
-      (s) => s.client.toString() !== clientId,
-    );
+    // s.client may be a raw ObjectId (unpopulated) or a populated ClientDocument
+    const mismatched = services.filter((s) => {
+      const rawId =
+        s.client instanceof Types.ObjectId
+          ? s.client.toString()
+          : String((s.client as unknown as { _id: { toString(): string } })._id);
+      return rawId !== clientId;
+    });
 
     if (mismatched.length > 0) {
       throw new BadRequestException(

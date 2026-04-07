@@ -48,7 +48,7 @@ export class PdfGenerator {
           Title: data.title,
           Author: data.generatedBy,
           Subject: `Нотаріальний документ ${data.documentNumber}`,
-          Creator: 'Нотаріальна CRM',
+          Creator: 'е-Нотаріус',
           CreationDate: new Date(data.generatedAt),
         },
       });
@@ -286,34 +286,63 @@ export class PdfGenerator {
     const y0 = doc.y;
     const col = BODY_W / 2;
 
-    // Left — notary
+    // Left — notary label + blank signature line
     doc
       .font('Serif-Bold').fontSize(9).fillColor(DARK)
       .text('Нотаріус:', ML, y0);
-    doc
-      .font('Serif').fontSize(9).fillColor(MUTED)
-      .text(data.generatedBy, ML, doc.y, { width: col - 10 });
 
-    doc.moveDown(0.3);
+    doc.moveDown(1.4);
     doc
       .moveTo(ML, doc.y)
       .lineTo(ML + 180, doc.y)
       .strokeColor(DARK).lineWidth(0.75).stroke();
     doc
       .font('Serif').fontSize(7.5).fillColor(LIGHT)
-      .text('(підпис нотаріуса)', ML, doc.y + 3, { width: 180, align: 'center' });
+      .text('(підпис)', ML, doc.y + 3, { width: 180, align: 'center' });
 
-    // Right — seal placeholder
+    // Right — official seal
     const sealCx = ML + col + 80;
-    const sealCy = y0 + 30;
-    const sealR  = 28;
-    doc.circle(sealCx, sealCy, sealR).stroke(NAVY).lineWidth(1);
-    doc.circle(sealCx, sealCy, sealR - 5).dash(2, { space: 3 }).stroke(NAVY).lineWidth(0.5).undash();
-    doc
-      .font('Serif').fontSize(7).fillColor(NAVY)
-      .text('М.П.', sealCx - 10, sealCy - 5, { width: 20, align: 'center' });
+    const sealCy = y0 + 36;
+    const sealR  = 38;
+    const innerR = sealR - 8;
 
-    doc.y = y0 + sealR * 2 + 20;
+    // Outer ring — solid
+    doc.circle(sealCx, sealCy, sealR)
+      .fillAndStroke('#E8EDF6', NAVY);
+    doc.lineWidth(1.5);
+    doc.circle(sealCx, sealCy, sealR).stroke(NAVY);
+
+    // Inner ring — thin solid
+    doc.circle(sealCx, sealCy, innerR).stroke(NAVY).lineWidth(0.7);
+
+    // Curved text along outer ring: "е-НОТАРІУС • УКРАЇНА •"
+    const ringText = 'е-НОТАРІУС  •  УКРАЇНА  •';
+    const chars = ringText.split('');
+    const totalAngle = Math.PI * 1.55;
+    const startAngle = -Math.PI / 2 - totalAngle / 2;
+    const textRadius = sealR - 4;
+
+    doc.font('Serif-Bold').fontSize(6).fillColor(NAVY);
+    chars.forEach((ch, idx) => {
+      const angle = startAngle + (idx / (chars.length - 1)) * totalAngle;
+      const cx = sealCx + textRadius * Math.cos(angle);
+      const cy = sealCy + textRadius * Math.sin(angle);
+      doc.save();
+      doc.translate(cx, cy);
+      doc.rotate((angle + Math.PI / 2) * (180 / Math.PI));
+      doc.text(ch, -3, -4, { lineBreak: false });
+      doc.restore();
+    });
+
+    // Center — star + "М.П."
+    doc.font('Serif-Bold').fontSize(14).fillColor(NAVY)
+      .text('✦', sealCx - 7, sealCy - 18, { lineBreak: false });
+    doc.font('Serif-Bold').fontSize(8).fillColor(NAVY)
+      .text('М.П.', sealCx - 12, sealCy - 2, { width: 24, align: 'center' });
+    doc.font('Serif').fontSize(5.5).fillColor(NAVY)
+      .text('НОТАРІАЛЬНА ПЕЧАТКА', sealCx - 28, sealCy + 10, { width: 56, align: 'center' });
+
+    doc.y = y0 + sealR * 2 + 14;
 
     // Date line
     doc
@@ -338,7 +367,7 @@ export class PdfGenerator {
     doc
       .font('Serif').fontSize(7).fillColor(LIGHT)
       .text(
-        `Документ сформовано автоматично системою Нотаріальна CRM · ${data.documentNumber} · ${this.fmtDate(data.generatedAt)}`,
+        `Документ сформовано автоматично системою е-Нотаріус · ${data.documentNumber} · ${this.fmtDate(data.generatedAt)}`,
         ML,
         footerY - 2,
         { width: BODY_W, align: 'center' },

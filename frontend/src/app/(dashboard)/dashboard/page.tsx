@@ -63,20 +63,14 @@ export default function DashboardPage() {
         setClients(allClients.slice(0, 5));
         setStats((s) => ({ ...s, total: allClients.length }));
 
-        // Load services for each recent client to compute stats
-        const serviceResults = await Promise.allSettled(
-          allClients.slice(0, 10).map((c) => servicesService.getAllByClient(c._id)),
-        );
+        // Load all services for accurate stats
+        const allServices = await servicesService.getAll();
 
         let pending = 0;
         let completed = 0;
-        for (const result of serviceResults) {
-          if (result.status === 'fulfilled') {
-            for (const svc of result.value) {
-              if (svc.status === 'PENDING' || svc.status === 'IN_PROGRESS') pending++;
-              if (svc.status === 'COMPLETED') completed++;
-            }
-          }
+        for (const svc of allServices) {
+          if (svc.status === 'PENDING' || svc.status === 'IN_PROGRESS') pending++;
+          if (svc.status === 'COMPLETED') completed++;
         }
         setStats({ total: allClients.length, pending, completed });
       } catch {

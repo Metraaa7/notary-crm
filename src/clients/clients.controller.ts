@@ -40,10 +40,14 @@ export class ClientsController {
   @Roles(Role.NOTARY, Role.ASSISTANT)
   findAll(
     @Query('search') search?: string,
+    @Query('nationalId') nationalId?: string,
+    @Query('city') city?: string,
     @Query('includeInactive') includeInactive?: string,
   ): Promise<ClientDocument[]> {
     return this.clientsService.findAll({
       search,
+      nationalId,
+      city,
       includeInactive: includeInactive === 'true',
     });
   }

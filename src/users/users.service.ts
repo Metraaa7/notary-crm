@@ -47,7 +47,7 @@ export class UsersService {
 
   async update(id: string, dto: UpdateUserDto): Promise<UserDocument> {
     const user = await this.userModel
-      .findByIdAndUpdate(id, dto, { new: true, runValidators: true })
+      .findByIdAndUpdate(id, dto, { returnDocument: 'after', runValidators: true })
       .exec();
 
     if (!user) {

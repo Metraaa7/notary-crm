@@ -3,10 +3,17 @@ import { Client, CreateClientPayload, UpdateClientPayload } from '@/types/client
 import { ApiResponse } from '@/types/api.types';
 
 export const clientsService = {
-  async getAll(search?: string, includeInactive?: boolean): Promise<Client[]> {
+  async getAll(filters?: {
+    search?: string;
+    nationalId?: string;
+    city?: string;
+    includeInactive?: boolean;
+  }): Promise<Client[]> {
     const params: Record<string, string> = {};
-    if (search) params.search = search;
-    if (includeInactive) params.includeInactive = 'true';
+    if (filters?.search)        params.search = filters.search;
+    if (filters?.nationalId)    params.nationalId = filters.nationalId;
+    if (filters?.city)          params.city = filters.city;
+    if (filters?.includeInactive) params.includeInactive = 'true';
 
     const response = await api.get<unknown, ApiResponse<Client[]>>('/clients', { params });
     return response.data;

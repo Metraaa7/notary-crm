@@ -4,6 +4,23 @@ import {
   IDocumentGenerator,
 } from '../interfaces/document-generator.interface';
 
+const TYPE_LABELS: Record<string, string> = {
+  DEED:              'Нотаріальний акт',
+  POWER_OF_ATTORNEY: 'Довіреність',
+  WILL:              'Заповіт',
+  CERTIFICATION:     'Засвідчення',
+  CONTRACT:          'Договір',
+  AFFIDAVIT:         'Заява',
+  OTHER:             'Інше нотаріальне провадження',
+};
+
+const VERIFICATION_LABELS: Record<string, string> = {
+  VERIFIED:    'Особу верифіковано',
+  NOT_FOUND:   'Запис у реєстрі не знайдено',
+  MISMATCH:    'Дані не збігаються з реєстром',
+  UNAVAILABLE: 'Реєстр тимчасово недоступний',
+};
+
 @Injectable()
 export class TextGenerator implements IDocumentGenerator {
   generate(data: DocumentData): string {
@@ -13,14 +30,15 @@ export class TextGenerator implements IDocumentGenerator {
     const serviceLines = data.services
       .map((s, i) => {
         const fee = (s.feeAmount / 100).toFixed(2);
+        const typeLabel = TYPE_LABELS[s.type] ?? s.type;
         const confirmed = s.confirmedAt
-          ? `  Confirmed: ${this.formatDate(s.confirmedAt)}`
-          : '  Status: Pending confirmation';
+          ? `  Підтверджено: ${this.formatDate(s.confirmedAt)}`
+          : '  Статус: очікує підтвердження';
 
         return [
-          `  ${i + 1}. [${s.type}]`,
+          `  ${i + 1}. [${typeLabel}]`,
           `     ${s.description}`,
-          `     Fee: ${fee} ${s.feeCurrency}`,
+          `     Збір: ${fee} ${s.feeCurrency}`,
           confirmed,
         ].join('\n');
       })
@@ -30,44 +48,44 @@ export class TextGenerator implements IDocumentGenerator {
     const currency = data.services[0]?.feeCurrency ?? 'UAH';
 
     const verificationLine = data.verificationStatus
-      ? `Identity Verification : ${data.verificationStatus}`
-      : `Identity Verification : NOT PERFORMED`;
+      ? `Верифікація особи    : ${VERIFICATION_LABELS[data.verificationStatus] ?? data.verificationStatus}`
+      : `Верифікація особи    : НЕ ВИКОНАНА`;
 
     return [
       separator,
-      `NOTARIAL DOCUMENT`,
+      `НОТАРІАЛЬНИЙ ДОКУМЕНТ`,
       separator,
       ``,
-      `Document No : ${data.documentNumber}`,
-      `Title       : ${data.title}`,
-      `Generated   : ${this.formatDate(data.generatedAt)}`,
-      `Notary      : ${data.generatedBy}`,
+      `Реєстр №     : ${data.documentNumber}`,
+      `Назва        : ${data.title}`,
+      `Сформовано   : ${this.formatDate(data.generatedAt)}`,
+      `Нотаріус     : ${data.generatedBy}`,
       ``,
       thin,
-      `CLIENT`,
+      `КЛІЄНТ`,
       thin,
-      `Full Name   : ${data.client.fullName}`,
-      `National ID : ${data.client.nationalId}`,
-      `Date of Birth: ${this.formatDate(data.client.dateOfBirth)}`,
-      `Address     : ${data.client.address}`,
-      `Phone       : ${data.client.phone}`,
-      data.client.email ? `Email       : ${data.client.email}` : null,
+      `ПІБ                  : ${data.client.fullName}`,
+      `РНОКПП               : ${data.client.nationalId}`,
+      `Дата народження      : ${this.formatDate(data.client.dateOfBirth)}`,
+      `Місце проживання     : ${data.client.address}`,
+      `Телефон              : ${data.client.phone}`,
+      data.client.email ? `Електронна пошта     : ${data.client.email}` : null,
       verificationLine,
       ``,
       thin,
-      `SERVICES`,
+      `НОТАРІАЛЬНІ ДІЇ`,
       thin,
       serviceLines,
       ``,
       thin,
-      `TOTAL FEE   : ${(totalFee / 100).toFixed(2)} ${currency}`,
+      `ЗАГАЛЬНА СУМА        : ${(totalFee / 100).toFixed(2)} ${currency}`,
       thin,
-      data.notes ? `\nNOTES\n${data.notes}\n` : null,
+      data.notes ? `\nПРИМІТКИ\n${data.notes}\n` : null,
       ``,
       separator,
-      `Notary signature: ____________________________`,
+      `Підпис нотаріуса: ____________________________`,
       ``,
-      `Date: ________________`,
+      `Дата: ________________`,
       separator,
     ]
       .filter((line) => line !== null)
@@ -79,7 +97,6 @@ export class TextGenerator implements IDocumentGenerator {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      locale: 'uk-UA',
-    } as Intl.DateTimeFormatOptions);
+    });
   }
 }

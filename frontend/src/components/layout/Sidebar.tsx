@@ -38,7 +38,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
             <Scale className="h-4 w-4 text-white" />
           </div>
-          <span className="font-semibold text-sm">Нотаріальна CRM</span>
+          <span className="font-semibold text-sm">е-Нотаріус</span>
         </div>
         {/* Close button — mobile only */}
         <button

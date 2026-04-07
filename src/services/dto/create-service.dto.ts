@@ -10,7 +10,9 @@ import {
 import { ServiceType } from '../enums/service-type.enum';
 
 export class CreateServiceDto {
+  // Provided by the URL param :clientId — optional in the body
   @IsMongoId()
+  @IsOptional()
   clientId: string;
 
   @IsEnum(ServiceType)

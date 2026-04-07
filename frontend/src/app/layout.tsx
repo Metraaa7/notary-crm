@@ -10,7 +10,7 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: 'Нотаріальна CRM',
+  title: 'е-Нотаріус',
   description: 'Система управління нотаріальним офісом',
 };
 

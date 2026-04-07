@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Service, ServiceDocument } from './schemas/service.schema';
 import { ClientsService } from '../clients/clients.service';
 import { CreateServiceDto } from './dto/create-service.dto';
@@ -28,13 +28,13 @@ export class ServicesService {
     await this.clientsService.findById(dto.clientId);
 
     const service = new this.serviceModel({
-      client: dto.clientId,
+      client: new Types.ObjectId(dto.clientId),
       type: dto.type,
       description: dto.description,
       feeAmount: dto.feeAmount,
       feeCurrency: dto.feeCurrency ?? 'UAH',
       notes: dto.notes,
-      createdBy,
+      createdBy: new Types.ObjectId(createdBy),
     });
 
     return service.save();
@@ -55,7 +55,7 @@ export class ServicesService {
     await this.clientsService.findById(clientId);
 
     return this.serviceModel
-      .find({ client: clientId })
+      .find({ client: new Types.ObjectId(clientId) })
       .populate('createdBy', 'name email role')
       .populate('confirmedBy', 'name email role')
       .sort({ createdAt: -1 })
@@ -81,7 +81,7 @@ export class ServicesService {
       .findOneAndUpdate(
         { _id: id, status: { $nin: [ServiceStatus.COMPLETED, ServiceStatus.CANCELLED] } },
         dto,
-        { new: true, runValidators: true },
+        { returnDocument: 'after', runValidators: true },
       )
       .exec();
 
@@ -112,7 +112,7 @@ export class ServicesService {
     }
 
     service.status = ServiceStatus.COMPLETED;
-    service.confirmedBy = confirmedBy as unknown as typeof service.confirmedBy;
+    service.confirmedBy = new Types.ObjectId(confirmedBy) as unknown as typeof service.confirmedBy;
     service.confirmedAt = new Date();
     if (dto.notes) service.notes = dto.notes;
 

@@ -57,7 +57,7 @@ export default function LoginPage() {
             <Scale className="h-7 w-7 text-white" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900">Нотаріальна CRM</h1>
+            <h1 className="text-2xl font-bold text-gray-900">е-Нотаріус</h1>
             <p className="mt-1 text-sm text-gray-500">
               Система управління нотаріальним офісом
             </p>
@@ -80,7 +80,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="нотаріус@приклад.com"
+                  placeholder="notary@example.com"
                   required
                   autoComplete="email"
                   autoFocus
@@ -119,7 +119,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="mt-6 text-center text-xs text-gray-400">
-          © {new Date().getFullYear()} Нотаріальна CRM. Всі права захищені.
+          © {new Date().getFullYear()} е-Нотаріус. Всі права захищені.
         </p>
       </motion.div>
     </main>
