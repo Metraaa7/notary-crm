@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Blue rounded square background matching sidebar bg-blue-600 -->
+  <rect width="32" height="32" rx="7" fill="#2563EB"/>
+  <!-- Lucide Scale icon (24x24), shifted to center in 32x32 -->
+  <g transform="translate(4, 4)" stroke="white" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+    <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+    <path d="M7 21h10"/>
+    <path d="M12 3v18"/>
+    <path d="M3 7h2c2 0 4-1 6-2 2 1 4 2 6 2h2"/>
+  </g>
+</svg>
