@@ -15,6 +15,7 @@ import {
   UserCog,
   BarChart2,
   MapPin,
+  CalendarDays,
   Settings,
 } from 'lucide-react';
 import { SettingsPanel } from '@/components/settings/SettingsPanel';
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { href: '/employees', label: 'Співробітники', icon: UserCog },
   { href: '/statistics', label: 'Статистика', icon: BarChart2 },
   { href: '/map', label: 'Карта клієнтів', icon: MapPin },
+  { href: '/calendar', label: 'Календар', icon: CalendarDays },
 ];
 
 interface SidebarProps {

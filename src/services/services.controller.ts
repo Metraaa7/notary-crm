@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ServicesService } from './services.service';
@@ -37,7 +38,18 @@ export class ServicesController {
     return this.servicesService.create(
       { ...dto, clientId },
       user.userId,
+      user,
     );
+  }
+
+  // GET /services/calendar?from=&to=
+  @Get('services/calendar')
+  @Roles(Role.NOTARY, Role.ASSISTANT)
+  getCalendar(
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ): Promise<ServiceDocument[]> {
+    return this.servicesService.getCalendar(from, to);
   }
 
   // GET /services
@@ -82,14 +94,17 @@ export class ServicesController {
     @Body() dto: ConfirmServiceDto,
     @CurrentUser() user: RequestUser,
   ): Promise<ServiceDocument> {
-    return this.servicesService.confirm(id, user.userId, dto);
+    return this.servicesService.confirm(id, user.userId, dto, user);
   }
 
   // PATCH /services/:id/cancel  — NOTARY only
   @Patch('services/:id/cancel')
   @Roles(Role.NOTARY)
   @HttpCode(HttpStatus.OK)
-  cancel(@Param('id') id: string): Promise<ServiceDocument> {
-    return this.servicesService.cancel(id);
+  cancel(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+  ): Promise<ServiceDocument> {
+    return this.servicesService.cancel(id, user);
   }
 }

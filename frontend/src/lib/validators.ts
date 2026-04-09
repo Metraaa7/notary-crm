@@ -26,6 +26,7 @@ export const serviceSchema = z.object({
   feeAmount: z.number().min(0, 'Сума не може бути від`ємною'),
   feeCurrency: z.string().default('UAH'),
   notes: z.string().optional(),
+  scheduledAt: z.string().optional(),
 });
 
 export const generateDocumentSchema = z.object({

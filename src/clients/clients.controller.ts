@@ -33,7 +33,7 @@ export class ClientsController {
     @Body() dto: CreateClientDto,
     @CurrentUser() user: RequestUser,
   ): Promise<ClientDocument> {
-    return this.clientsService.create(dto, user.userId);
+    return this.clientsService.create(dto, user.userId, user);
   }
 
   @Get()
@@ -63,14 +63,18 @@ export class ClientsController {
   update(
     @Param('id') id: string,
     @Body() dto: UpdateClientDto,
+    @CurrentUser() user: RequestUser,
   ): Promise<ClientDocument> {
-    return this.clientsService.update(id, dto);
+    return this.clientsService.update(id, dto, user);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.NOTARY)
-  deactivate(@Param('id') id: string): Promise<void> {
-    return this.clientsService.deactivate(id);
+  deactivate(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+  ): Promise<void> {
+    return this.clientsService.deactivate(id, user);
   }
 }

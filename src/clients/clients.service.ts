@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import { Client, ClientDocument } from './schemas/client.schema';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
+import { AuditService } from '../audit/audit.service';
 
 export interface ClientFilter {
   search?: string;
@@ -25,11 +26,13 @@ export class ClientsService {
   constructor(
     @InjectModel(Client.name)
     private readonly clientModel: Model<ClientDocument>,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(
     dto: CreateClientDto,
     createdBy: string,
+    actor?: { userId: string; email: string },
   ): Promise<ClientDocument> {
     const existing = await this.clientModel.findOne({
       nationalId: dto.nationalId,
@@ -41,7 +44,20 @@ export class ClientsService {
     }
 
     const client = new this.clientModel({ ...dto, createdBy });
-    return client.save();
+    const saved = await client.save();
+
+    if (actor) {
+      void this.auditService.log({
+        entity: 'client',
+        entityId: String(saved._id),
+        action: 'CREATE',
+        userId: actor.userId,
+        userName: actor.email,
+        changes: { nationalId: dto.nationalId },
+      });
+    }
+
+    return saved;
   }
 
   async findAll(filter: ClientFilter = {}): Promise<ClientDocument[]> {
@@ -102,7 +118,11 @@ export class ClientsService {
     return this.clientModel.findOne({ nationalId, isActive: true }).exec();
   }
 
-  async update(id: string, dto: UpdateClientDto): Promise<ClientDocument> {
+  async update(
+    id: string,
+    dto: UpdateClientDto,
+    actor?: { userId: string; email: string },
+  ): Promise<ClientDocument> {
     const client = await this.clientModel
       .findOneAndUpdate(
         { _id: id, isActive: true },
@@ -115,16 +135,41 @@ export class ClientsService {
     if (!client) {
       throw new NotFoundException(`Client ${id} not found`);
     }
+
+    if (actor) {
+      void this.auditService.log({
+        entity: 'client',
+        entityId: id,
+        action: 'UPDATE',
+        userId: actor.userId,
+        userName: actor.email,
+        changes: dto as Record<string, unknown>,
+      });
+    }
+
     return client;
   }
 
-  async deactivate(id: string): Promise<void> {
+  async deactivate(
+    id: string,
+    actor?: { userId: string; email: string },
+  ): Promise<void> {
     const result = await this.clientModel
       .findOneAndUpdate({ _id: id, isActive: true }, { isActive: false })
       .exec();
 
     if (!result) {
       throw new NotFoundException(`Client ${id} not found`);
+    }
+
+    if (actor) {
+      void this.auditService.log({
+        entity: 'client',
+        entityId: id,
+        action: 'DEACTIVATE',
+        userId: actor.userId,
+        userName: actor.email,
+      });
     }
   }
 }

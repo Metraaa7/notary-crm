@@ -73,7 +73,7 @@ export class DocumentsController {
     @Param('id') id: string,
     @CurrentUser() user: RequestUser,
   ): Promise<DocumentDocument> {
-    return this.documentsService.finalize(id, user.userId);
+    return this.documentsService.finalize(id, user.userId, user);
   }
 
   @Get(':id/export/pdf')

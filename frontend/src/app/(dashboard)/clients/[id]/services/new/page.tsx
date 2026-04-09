@@ -79,6 +79,7 @@ export default function NewServicePage({
         feeAmount: Math.round(values.feeAmount * 100),
         feeCurrency: values.feeCurrency ?? 'UAH',
         notes: values.notes,
+        scheduledAt: values.scheduledAt || undefined,
       });
       toast.success('Послугу успішно створено');
       router.push(`/clients/${clientId}`);
@@ -195,6 +196,18 @@ export default function NewServicePage({
                 <Label>Валюта</Label>
                 <Input {...register('feeCurrency')} defaultValue="UAH" />
               </div>
+            </div>
+
+            {/* Scheduled date */}
+            <div className="space-y-1.5">
+              <Label>Дата і час зустрічі</Label>
+              <Input
+                type="datetime-local"
+                {...register('scheduledAt')}
+              />
+              <p className="text-xs text-gray-400">
+                Необов&apos;язково — відображається в календарі
+              </p>
             </div>
 
             {/* Notes */}

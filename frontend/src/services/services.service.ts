@@ -58,4 +58,12 @@ export const servicesService = {
     );
     return response.data;
   },
+
+  async getCalendar(from: string, to: string): Promise<Service[]> {
+    const response = await api.get<unknown, ApiResponse<Service[]>>(
+      '/services/calendar',
+      { params: { from, to } },
+    );
+    return response.data;
+  },
 };

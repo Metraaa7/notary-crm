@@ -16,6 +16,7 @@ import { DocumentStatus } from './enums/document-status.enum';
 import { ServiceStatus } from '../services/enums/service-status.enum';
 import { ClientDocument } from '../clients/schemas/client.schema';
 import { ServiceDocument } from '../services/schemas/service.schema';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class DocumentsService {
@@ -26,6 +27,7 @@ export class DocumentsService {
     private readonly servicesService: ServicesService,
     private readonly textGenerator: TextGenerator,
     private readonly pdfGenerator: PdfGenerator,
+    private readonly auditService: AuditService,
   ) {}
 
   async generate(
@@ -99,7 +101,11 @@ export class DocumentsService {
     return document;
   }
 
-  async finalize(id: string, finalizedBy: string): Promise<DocumentDocument> {
+  async finalize(
+    id: string,
+    finalizedBy: string,
+    actor?: { userId: string; email: string },
+  ): Promise<DocumentDocument> {
     const document = await this.documentModel.findById(id).exec();
 
     if (!document) {
@@ -114,7 +120,20 @@ export class DocumentsService {
     document.finalizedBy = new Types.ObjectId(finalizedBy) as unknown as typeof document.finalizedBy;
     document.finalizedAt = new Date();
 
-    return document.save();
+    const saved = await document.save();
+
+    if (actor) {
+      void this.auditService.log({
+        entity: 'document',
+        entityId: id,
+        action: 'FINALIZE',
+        userId: actor.userId,
+        userName: actor.email,
+        changes: { status: DocumentStatus.FINAL, documentNumber: document.documentNumber },
+      });
+    }
+
+    return saved;
   }
 
   async exportPdf(id: string): Promise<Buffer> {

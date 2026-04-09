@@ -35,6 +35,7 @@ export interface Service {
   feeAmount: number;
   feeCurrency: string;
   notes?: string;
+  scheduledAt?: string | null;
   createdBy: ServiceUser;
   confirmedBy?: ServiceUser | null;
   confirmedAt?: string | null;
@@ -49,6 +50,7 @@ export interface CreateServicePayload {
   feeAmount: number;
   feeCurrency?: string;
   notes?: string;
+  scheduledAt?: string;
 }
 
 export interface UpdateServicePayload {

@@ -1,4 +1,5 @@
 import {
+  IsDateString,
   IsEnum,
   IsInt,
   IsMongoId,
@@ -33,4 +34,8 @@ export class CreateServiceDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsDateString()
+  @IsOptional()
+  scheduledAt?: string;
 }

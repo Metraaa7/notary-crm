@@ -11,6 +11,7 @@ import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { ConfirmServiceDto } from './dto/confirm-service.dto';
 import { ServiceStatus } from './enums/service-status.enum';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class ServicesService {
@@ -18,11 +19,13 @@ export class ServicesService {
     @InjectModel(Service.name)
     private readonly serviceModel: Model<ServiceDocument>,
     private readonly clientsService: ClientsService,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(
     dto: CreateServiceDto,
     createdBy: string,
+    actor?: { userId: string; email: string },
   ): Promise<ServiceDocument> {
     // Verify client exists before linking
     await this.clientsService.findById(dto.clientId);
@@ -34,10 +37,38 @@ export class ServicesService {
       feeAmount: dto.feeAmount,
       feeCurrency: dto.feeCurrency ?? 'UAH',
       notes: dto.notes,
+      scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : undefined,
       createdBy: new Types.ObjectId(createdBy),
     });
 
-    return service.save();
+    const saved = await service.save();
+
+    if (actor) {
+      void this.auditService.log({
+        entity: 'service',
+        entityId: String(saved._id),
+        action: 'CREATE',
+        userId: actor.userId,
+        userName: actor.email,
+        changes: { type: dto.type, clientId: dto.clientId },
+      });
+    }
+
+    return saved;
+  }
+
+  async getCalendar(from: string, to: string): Promise<ServiceDocument[]> {
+    return this.serviceModel
+      .find({
+        scheduledAt: {
+          $gte: new Date(from),
+          $lte: new Date(to),
+        },
+      })
+      .populate('client', 'firstName lastName')
+      .populate('createdBy', 'name email role')
+      .sort({ scheduledAt: 1 })
+      .exec();
   }
 
   async findAll(): Promise<ServiceDocument[]> {
@@ -97,6 +128,7 @@ export class ServicesService {
     id: string,
     confirmedBy: string,
     dto: ConfirmServiceDto,
+    actor?: { userId: string; email: string },
   ): Promise<ServiceDocument> {
     const service = await this.serviceModel.findById(id).exec();
 
@@ -116,10 +148,26 @@ export class ServicesService {
     service.confirmedAt = new Date();
     if (dto.notes) service.notes = dto.notes;
 
-    return service.save();
+    const saved = await service.save();
+
+    if (actor) {
+      void this.auditService.log({
+        entity: 'service',
+        entityId: id,
+        action: 'CONFIRM',
+        userId: actor.userId,
+        userName: actor.email,
+        changes: { status: ServiceStatus.COMPLETED },
+      });
+    }
+
+    return saved;
   }
 
-  async cancel(id: string): Promise<ServiceDocument> {
+  async cancel(
+    id: string,
+    actor?: { userId: string; email: string },
+  ): Promise<ServiceDocument> {
     const service = await this.serviceModel.findById(id).exec();
 
     if (!service) {
@@ -135,6 +183,19 @@ export class ServicesService {
     }
 
     service.status = ServiceStatus.CANCELLED;
-    return service.save();
+    const saved = await service.save();
+
+    if (actor) {
+      void this.auditService.log({
+        entity: 'service',
+        entityId: id,
+        action: 'CANCEL',
+        userId: actor.userId,
+        userName: actor.email,
+        changes: { status: ServiceStatus.CANCELLED },
+      });
+    }
+
+    return saved;
   }
 }

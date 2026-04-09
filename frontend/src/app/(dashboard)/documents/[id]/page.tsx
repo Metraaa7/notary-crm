@@ -27,6 +27,7 @@ import {
   ScrollText,
   ShieldCheck,
 } from 'lucide-react';
+import { AuditLog } from '@/components/AuditLog';
 import type { NotaryDocument } from '@/types/document.types';
 
 const DOC_STATUS_CONFIG = {
@@ -273,6 +274,9 @@ export default function DocumentDetailPage({
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Audit log */}
+      <AuditLog entity="document" entityId={id} />
 
       {/* Export hint for DRAFT */}
       {doc.status === 'DRAFT' && isNotary && (

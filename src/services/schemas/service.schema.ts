@@ -44,6 +44,10 @@ export class Service {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   createdBy: Types.ObjectId;
 
+  // Scheduled appointment date/time (optional)
+  @Prop({ type: Date, default: null })
+  scheduledAt: Date | null;
+
   // Set when a NOTARY confirms the service
   @Prop({ type: Types.ObjectId, ref: 'User', default: null })
   confirmedBy: Types.ObjectId | null;

@@ -9,6 +9,7 @@ import { ServicesModule } from './services/services.module';
 import { RegistryModule } from './registry/registry.module';
 import { DocumentsModule } from './documents/documents.module';
 import { HealthController } from './health.controller';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   controllers: [HealthController],
@@ -24,6 +25,7 @@ import { HealthController } from './health.controller';
         uri: config.get('mongodb.uri', { infer: true }),
       }),
     }),
+    AuditModule,
     UsersModule,
     AuthModule,
     ClientsModule,

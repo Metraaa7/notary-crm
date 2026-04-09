@@ -23,6 +23,7 @@ import {
   Phone, Mail, MapPin, CreditCard, Calendar,
   FileText, ScrollText, CheckCircle, Clock, XCircle,
 } from 'lucide-react';
+import { AuditLog } from '@/components/AuditLog';
 import type { Client } from '@/types/client.types';
 import type { Service } from '@/types/service.types';
 import type { NotaryDocument } from '@/types/document.types';
@@ -271,6 +272,9 @@ export default function ClientDetailPage({
               )}
             </CardContent>
           </Card>
+
+          {/* Audit log */}
+          <AuditLog entity="client" entityId={id} />
 
           {/* Documents */}
           <Card>
